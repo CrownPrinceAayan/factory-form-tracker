@@ -226,9 +226,9 @@ def submit():
                 pdf.ln(5)
 
         pdf_filename = f"inspection_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-        pdf_path = os.path.join(PDF_FOLDER, filename)
+        pdf_path = os.path.join(PDF_FOLDER, pdf_filename)
         pdf.output(pdf_path)
-        logger.info(f"PDF generated: {filename}")
+        logger.info(f"PDF generated: {pdf_filename}")
 
         # Upload to Drive
         from drive_uploader import upload_to_drive
