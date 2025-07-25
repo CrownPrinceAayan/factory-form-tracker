@@ -225,7 +225,7 @@ def submit():
                     pdf.cell(0, 10, f"Could not load signature for {label}", ln=True)
                 pdf.ln(5)
 
-        filename = f"inspection_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        pdf_filename = f"inspection_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         pdf_path = os.path.join(PDF_FOLDER, filename)
         pdf.output(pdf_path)
         logger.info(f"PDF generated: {filename}")
