@@ -232,13 +232,17 @@ def submit():
 
         # Upload to Drive
         from drive_uploader import upload_to_drive
-        try:
-            upload_to_drive(pdf_path, filename, folder_id='1vQbksJZzNLmTaLkEfgtg4HErKArI-HVf')
-            logger.info("Uploaded to Drive successfully.")
-        except Exception as e:
-            logger.error(f"Failed to upload to Google Drive: {e}")
+        # Upload to Drive
+from drive_uploader import upload_to_drive
+try:
+    upload_to_drive(pdf_path, pdf_filename, folder_id='1vQbksJZzNLmTaLkEfgtg4HErKArI-HVf')
+    logger.info("✅ Uploaded to Drive successfully.")
+except Exception as e:
+    logger.error(f"❌ Failed to upload to Google Drive: {e}")
 
-        return send_file(pdf_path, as_attachment=True)
+# Send file to user after upload
+return send_file(pdf_path, as_attachment=True)
+
 
     except Exception as e:
         logger.exception("Error in submit handler")
