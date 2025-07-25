@@ -239,7 +239,7 @@ def submit():
         except Exception as e:
             logger.error(f"❌ Failed to upload to Google Drive: {e}")
 
-        return send_file(pdf_path, as_attachment=True)
+        return "Form submitted and PDF uploaded to Google Drive successfully."
 
     except Exception as e:
         logger.exception("❌ Error in /submit handler")
