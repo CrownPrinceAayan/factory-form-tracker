@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "factory-project-gul-ahmed",
+  "private_key_id": "6864ddb6f0118420d068363d2f9cc4572eb4fe72",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDD0QgELGCMM47O\nWRoUyGkSgghdX/wtnV1HxcGIbztYBqoXdMBL8XFw+24NrhtrpBWNXtwgC58MNkuu\n77qtBbErxaeRDLCTIrwpvYf0t5d9cOjDI8XASlmuRxuFWYeE6UDyxQRocGmBxXDq\nI61VX/8hjI7RIJb5TgyhF+7kjSGkQeyHVSmcIP3hkmmZmciXpQQL2NSaPLczp7Dc\n4ef/eKiz+HOHsi+Fe5yW6Lu++HEbZy0Nc5yACWDM7I5xP6chaMXAyB+i81k6WVEO\nViJZMlkacJwRHfDjfzO7hmfJU5Fvy1yzPg71nZ/DITZP1W1gn2ONE/C9Yx6+4AYA\nM6jifSjnAgMBAAECggEAKENdXhpP2dQqG3THv5k7vaH+HVEEtc5jJURc2HRio+Vu\n6PbJKXRiSoRwayCvI7Fv+wsTwQUStXyekEBbxoLinKj+HP2aew6L2RtPDrsHS7RB\nMAq1eSXwjbyyRHeVvXcGs0RedSkUEKpr3sDqPaFJAPl5Tjfgwy9QunkE1nrMfYzy\nbkktE9FxyevMgfYshpDf0aOBkqbxK25VOg/KY2Am+v2ml52G3I3627S2Vu98nvPB\nr+e8Iot2k6ym5ccjR0OIFyoYChrxdJTwI5IIHIK79AOLw673+CFEAtlbpFgAuTEC\nfZ3euDUSQNpzeKf+8n9jURHh/tPNOMqQP57uEKUsVQKBgQDqK8Ig8rhyRVvxyr0F\nq6o+UEtNQKpEntqq8nDBEIx7AYFW7mMMwYlBlCM15WJetucWdZMNVam8IUAoTH3N\npKSIZKmrpRzCfAT6B09HM4cmnAIbyQkZFxgI06ihIlxKewafEKDaetwfKa+uH5Xb\nEZgs7XC/zhjAAfQvgtrM4hiLQwKBgQDWEfxZRwoKYfcHA+szIChvV24fNmEHdQSi\nlvUZiXTbut6A8qIAyXV/Gjj6mvvDmhNQ1hrS2Rw1oy/NjEh5TiGnIkSsDJl97q4R\n9kvZ7jVp7uWBWb6exCnD49KFKgk4DvYovYk95plLhaARzctynJHBd5i46hbM8ym7\nEqUEPwXnjQKBgQDNoBcbb4dfcGBIdcp9zDv18/PrpjjdgNBrA/DW131EFhJJD5OS\ng+/O0hIJJZ+3o8xQAHZcYzhkpp37xQ9DIKwJyLrkqlwSu2xzUS/gSfMHiD6hv2pp\nycmlFpcgx1dbX6R00NkugGwCQUyvDbU9ZLnH2cgD5Sn+kLinb7RJ7M+4mQKBgQCJ\nDT7IUajl+M5UmXetZbs9fXYtWX1JbuumxIrq7Iv6WWs2lyCM7G3jEADGwQ7KrgwL\nxuepcgKTfISQTm3f69uzy0a39+EVNQgQy+TIA7ACwEYDSFe4AdLTbTpMsxrv3vRO\nJPqGvOoL5eMTQvQrzn2qpU0LpiMu18cx07/+NfMryQKBgE09vQFghrsJa3dOpu0G\nEj2GbLQ1e0puEt9v2yuXrMGmUhxfU4acXk0LBl6ki644e5u/L9DHyKTpdKDZ5m+h\nsx7WBbb2qM+tLyfwt9d5opOIpXvnpOlF3B2oUzBH8tTHq5kYYeqrvo9socGsH3lW\n4/xKku9qxVmmsGwKL9j0MZtV\n-----END PRIVATE KEY-----\n",
+  "client_email": "gulahmed01@factory-project-gul-ahmed.iam.gserviceaccount.com",
+  "client_id": "101210142861604026404",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/gulahmed01%40factory-project-gul-ahmed.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
