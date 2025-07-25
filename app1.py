@@ -9,11 +9,10 @@ from fpdf import FPDF
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Set up logging
+# --- Setup ---
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("app1")
 
-# Flask app setup
 app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -24,10 +23,9 @@ PDF_FOLDER = os.path.join(BASE_DIR, 'static', 'reports')
 for folder in [UPLOAD_FOLDER, SIGNATURE_FOLDER, PDF_FOLDER]:
     os.makedirs(folder, exist_ok=True)
 
-# Configure file size limits (optional, to avoid Render crashing)
-app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024  # 25MB max per request
+app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024  # 25MB max
 
-# Google Sheets client
+# --- Google Sheets ---
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 try:
     creds_dict = json.loads(os.environ["GOOGLE_CREDS_JSON"])
@@ -37,9 +35,9 @@ try:
     sheet = client.open("webdata").sheet1
 except Exception as e:
     logger.exception("Failed to authenticate with Google Sheets")
-    sheet = None  # Prevent crash
+    sheet = None
 
-# Helpers
+# --- Helpers ---
 def save_images(file_list, prefix):
     image_paths = []
     for file in file_list:
@@ -66,6 +64,7 @@ def save_signature(base64_data, filename):
             logger.error(f"Failed to save signature {filename}: {e}")
     return None
 
+# --- Routes ---
 @app.route('/')
 def form():
     return render_template('form.html')
@@ -73,34 +72,19 @@ def form():
 @app.route('/submit', methods=['POST'])
 def submit():
     try:
+        # Get form fields
         form_fields = {
-            'date': request.form.get('date'),
-            'product_category': request.form.get('product_category'),
-            'supplier_name': request.form.get('supplier_name'),
-            'item_description': request.form.get('item_description'),
-            'design_no': request.form.get('design_no'),
-            'colour': request.form.get('colour'),
-            'inspector_name': request.form.get('inspector_name'),
-            'fabric_quality': request.form.get('fabric_quality'),
-            'merchandiser_name': request.form.get('merchandiser_name'),
-            'order_quantity': request.form.get('order_quantity'),
-            'presented_quantity': request.form.get('presented_quantity'),
-            'pieces_inspected': request.form.get('pieces_inspected'),
-            'sampling_range': request.form.get('sampling_range'),
-            'inline_inspection': request.form.get('inline_inspection'),
-            'pp_approved': request.form.get('pp_approved'),
-            'packing_list': request.form.get('packing_list'),
-            'po_same': request.form.get('po_same'),
-            'storage_ok': request.form.get('storage_ok'),
-            'carton_selected': request.form.get('carton_selected'),
-            'total_cartons': request.form.get('total_cartons'),
-            'inspected_cartons': request.form.get('inspected_cartons'),
-            'inspection_result': request.form.get('inspection_result'),
-            'delivery_date': request.form.get('delivery_date'),
-            'final_comments': request.form.get('final_comments'),
+            key: request.form.get(key) for key in [
+                'date', 'product_category', 'supplier_name', 'item_description', 'design_no',
+                'colour', 'inspector_name', 'fabric_quality', 'merchandiser_name',
+                'order_quantity', 'presented_quantity', 'pieces_inspected', 'sampling_range',
+                'inline_inspection', 'pp_approved', 'packing_list', 'po_same', 'storage_ok',
+                'carton_selected', 'total_cartons', 'inspected_cartons', 'inspection_result',
+                'delivery_date', 'final_comments'
+            ]
         }
 
-        # Write to Google Sheet
+        # Append to Google Sheet
         if sheet:
             try:
                 sheet.append_row([
@@ -110,11 +94,11 @@ def submit():
                     form_fields['order_quantity'], form_fields['presented_quantity'],
                     form_fields['pp_approved'], form_fields['delivery_date'], form_fields['final_comments']
                 ])
-                logger.info("Appended row to Google Sheet.")
+                logger.info("✅ Appended row to Google Sheet.")
             except Exception as e:
-                logger.error("Failed to append to Google Sheet: %s", str(e))
+                logger.error(f"❌ Failed to append to Google Sheet: {e}")
 
-        # Save defect details
+        # Defect details
         defect_types = request.form.getlist('defectType[]')
         minor_counts = request.form.getlist('minor[]')
         major_counts = request.form.getlist('major[]')
@@ -127,15 +111,16 @@ def submit():
             files = request.files.getlist(f'defectImages_{i}[]')
             if not files or all(f.filename == '' for f in files):
                 break
-            paths = save_images(files, f'defect_{i}')
-            defect_images.append(paths)
+            defect_images.append(save_images(files, f'defect_{i}'))
             i += 1
 
+        # Signatures
         qc_signature = save_signature(request.form.get('qc_signature'), 'qc_signature.png')
         supplier_signature = save_signature(request.form.get('supplier_signature'), 'supplier_signature.png')
         aqm_signature = save_signature(request.form.get('aqm_signature'), 'aqm_signature.png')
         merch_signature = save_signature(request.form.get('merch_signature'), 'merch_signature.png')
 
+        # Other pictures
         factory_images = save_images(request.files.getlist('factory_pictures'), 'factory')
         inline_images = save_images(request.files.getlist('inline_pictures'), 'inline')
         pp_images = save_images(request.files.getlist('pp_pictures'), 'pp')
@@ -144,7 +129,7 @@ def submit():
         storage_images = save_images(request.files.getlist('storage_pictures'), 'storage')
         carton_images = save_images(request.files.getlist('carton_pictures'), 'carton')
 
-        # Start PDF generation
+        # Generate PDF
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", 'B', 16)
@@ -165,24 +150,18 @@ def submit():
             pdf.add_page()
             pdf.set_font("Arial", 'B', 14)
             pdf.cell(0, 10, "Defects Summary", ln=True)
-            pdf.set_font("Arial", 'B', 12)
-            pdf.cell(60, 10, "Defect Type", border=1)
-            pdf.cell(30, 10, "Minor", border=1)
-            pdf.cell(30, 10, "Major", border=1)
-            pdf.cell(70, 10, "Image(s)", border=1, ln=True)
             pdf.set_font("Arial", '', 12)
-
             for i, dtype in enumerate(defect_types):
                 pdf.cell(60, 10, dtype, border=1)
                 pdf.cell(30, 10, minor_counts[i], border=1)
                 pdf.cell(30, 10, major_counts[i], border=1)
-                pdf.cell(70, 10, f"{len(defect_images[i])} image(s)" if i < len(defect_images) else "0", border=1, ln=True)
+                pdf.cell(70, 10, f"{len(defect_images[i])} image(s)", border=1, ln=True)
                 for img in defect_images[i]:
                     try:
                         pdf.image(img, w=60)
                         pdf.ln(5)
                     except:
-                        pdf.cell(0, 10, f"Error loading image {os.path.basename(img)}", ln=True)
+                        pdf.cell(0, 10, f"Could not load image {os.path.basename(img)}", ln=True)
 
             pdf.cell(60, 10, "Total", border=1)
             pdf.cell(30, 10, total_minor, border=1)
@@ -228,23 +207,22 @@ def submit():
         pdf_filename = f"inspection_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         pdf_path = os.path.join(PDF_FOLDER, pdf_filename)
         pdf.output(pdf_path)
-        logger.info(f"PDF generated: {pdf_filename}")
+        logger.info(f"✅ PDF generated: {pdf_filename}")
 
-        # Upload to Drive
+        # Upload to Google Drive
         from drive_uploader import upload_to_drive
-# Upload to Google Drive
         try:
             upload_to_drive(pdf_path, pdf_filename, folder_id='1vQbksJZzNLmTaLkEfgtg4HErKArI-HVf')
             logger.info("✅ Uploaded to Google Drive successfully.")
         except Exception as e:
             logger.error(f"❌ Failed to upload to Google Drive: {e}")
 
-        return "Form submitted and PDF uploaded to Google Drive successfully."
+        return "✅ Form submitted and PDF uploaded to Google Drive."
 
     except Exception as e:
         logger.exception("❌ Error in /submit handler")
-        return "An error occurred during submission. Please check the logs or contact support.", 500
+        return "❌ An error occurred during submission.", 500
 
-
+# --- Run Locally ---
 if __name__ == '__main__':
     app.run(debug=True)
