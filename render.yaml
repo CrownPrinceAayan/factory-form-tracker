@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: factory-form-tracker
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: GOOGLE_CREDS_JSON
+        sync: false
+    plan: free
+    autoDeploy: true
