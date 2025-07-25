@@ -16,6 +16,7 @@ creds_dict = json.loads(os.environ["GOOGLE_CREDS_JSON"])
 creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 
+client = gspread.authorize(creds)  # ✅ MUST come before client usage
 # Open your target Google Sheet by name (not URL)
 sheet = client.open("webdata").sheet1
 
