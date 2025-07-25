@@ -4,13 +4,15 @@ from werkzeug.utils import secure_filename
 from fpdf import FPDF
 import base64
 from datetime import datetime
+import json
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name(r"cred/service.json", scope)
+creds_dict = json.loads(os.environ["GOOGLE_CREDS_JSON"])
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
 # Open your target Google Sheet by name (not URL)
