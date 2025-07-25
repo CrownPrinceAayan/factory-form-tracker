@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Final Inspection Form</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: hwb(138 93% 3%);
+    margin: 20px;
+  }
+  h1, h3 {
+    text-align: center;
+    color: #070808;
+  }
+  form {
+    max-width: 900px;
+    margin: auto;
+    background: rgba(212, 203, 226, 0.712);
+    padding: 25px;
+    box-shadow: 0 8px 16px rgba(86, 67, 194, 0.76);
+    border-radius: 8px;
+  }
+  label {
+    display: block;
+    margin-bottom: 15px;
+    font-weight: 600;
+    color: #000000;
+  }
+  input[type="text"],
+  input[type="date"],
+  textarea,
+  select {
+    width: 100%;
+    padding: 8px 12px;
+    margin-top: 5px;
+    border: 1.8px solid #40a02d;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+  }
+  input[type="text"]:focus,
+  input[type="date"]:focus,
+  textarea:focus,
+  select:focus {
+    border-color: #19a020;
+    outline: none;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+  .signature-container {
+    margin-bottom: 30px;
+  }
+  .signature-label {
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: block;
+  }
+  canvas {
+    border: 2px solid #4a90e2;
+    border-radius: 6px;
+    background: #fff;
+    width: 300px;
+    height: 120px;
+    display: block;
+    margin-bottom: 6px;
+  }
+  button.clear-btn {
+    background: #dd4c13;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  button.clear-btn:hover {
+    background: #1512bb;
+  }
+  button[type="submit"] {
+    background: #4a90e2;
+    color: white;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 700;
+    display: block;
+    margin: 0 auto;
+  }
+  button[type="submit"]:hover {
+    background: #043261;
+  }
+</style>
+</head>
+<body>
+<h1>Final Inspection Form</h1>
+<form method="POST" action="/submit" enctype="multipart/form-data" novalidate>
+        <!-- Basic Info -->
+        <label>Inspection Date:<input type="date" name="date"></label>
+        <label>Product Category:
+            <select name="product_category">
+                <option value="">--Select--</option>
+                <option>Men</option>
+                <option>Women</option>
+                <option>Fragrances</option>
+                <option>Home Textile</option>
+                <option>Ladies</option>
+                <option>Salt</option>
+            </select>
+        </label>
+        <label>Supplier Name:<input type="text" name="supplier_name"></label>
+        <label>Item Description:<input type="text" name="item_description"></label>
+        <label>Design No:<input type="text" name="design_no"></label>
+        <label>Colour:<input type="text" name="colour"></label>
+        <label>Inspector Name:<input type="text" name="inspector_name"></label>
+        <label>Fabric Quality:<input type="text" name="fabric_quality"></label>
+        <label>Merchandiser Name:<input type="text" name="merchandiser_name"></label>
+        <label>Order Quantity:<input type="text" name="order_quantity"></label>
+        <label>Presented Quantity:<input type="text" name="presented_quantity"></label>
+        <label>Number of Pieces Inspected:<input type="text" name="pieces_inspected"></label>
+        <label>Delivery Date:<input type="date" name="delivery_date"></label>
+        <!-- Sampling Table -->
+        <h3>Sampling Table</h3>
+        <table>
+            <tr><th>Select</th><th>Presented Qty Range</th><th>Inspect</th><th>Pass</th><th>Reject</th></tr>
+            <tr><td><input type="radio" name="sampling_range" value="51-90"></td><td>51–90</td><td>13</td><td>1</td><td>2</td></tr>
+            <tr><td><input type="radio" name="sampling_range" value="91-150"></td><td>91–150</td><td>20</td><td>1</td><td>2</td></tr>
+            <tr><td><input type="radio" name="sampling_range" value="151-280"></td><td>151–280</td><td>32</td><td>2</td><td>3</td></tr>
+            <tr><td><input type="radio" name="sampling_range" value="281-500"></td><td>281–500</td><td>50</td><td>3</td><td>4</td></tr>
+            <tr><td><input type="radio" name="sampling_range" value="501-1200"></td><td>501–1200</td><td>80</td><td>5</td><td>6</td></tr>
+            <tr><td><input type="radio" name="sampling_range" value="1201-3200"></td><td>1201–3200</td><td>125</td><td>7</td><td>8</td></tr>
+            <tr><td><input type="radio" name="sampling_range" value="3201-10000"></td><td>3201–10000</td><td>200</td><td>10</td><td>11</td></tr>
+        </table>
+
+        <!-- Inline -->
+        <label>Inline Inspection Performed?
+            <input type="radio" name="inline_inspection" value="Yes"> Yes
+            <input type="radio" name="inline_inspection" value="No"> No
+        </label>
+        <label>Upload Inline Pictures:<input type="file" name="inline_pictures" multiple></label>
+
+        <!-- PP Sample -->
+        <label>PP Sample Approved?
+            <input type="radio" name="pp_approved" value="Yes"> Yes
+            <input type="radio" name="pp_approved" value="No"> No
+        </label>
+        <label>Upload PP Pictures:<input type="file" name="pp_pictures" multiple></label>
+
+        <!-- Packing List -->
+        <label>Packing List Available?
+            <input type="radio" name="packing_list" value="Yes"> Yes
+            <input type="radio" name="packing_list" value="No"> No
+        </label>
+        <label>Upload Packing List Pictures:<input type="file" name="packing_list_pictures" multiple></label>
+
+        <!-- PO -->
+        <label>PO Quantity Match?
+            <input type="radio" name="po_same" value="Yes"> Yes
+            <input type="radio" name="po_same" value="No"> No
+        </label>
+        <label>Upload PO Pictures:<input type="file" name="po_pictures" multiple></label>
+
+        <!-- Storage -->
+        <label>Storage OK?
+            <input type="radio" name="Is storage_ok" value="Yes"> Yes
+            <input type="radio" name="Is storage_ok" value="No"> No
+        </label>
+        <label>Upload Storage Pictures:<input type="file" name="storage_pictures" multiple></label>
+
+        <!-- Cartons -->
+        
+        <label>Total No. of Cartons:<input type="text" name="total_cartons"></label>
+        <label>Inspected Cartons:<input type="text" name="inspected_cartons"></label>
+        <label>Upload Carton Pictures:<input type="file" name="carton_pictures" multiple></label>
+
+        <!-- Defects -->
+        <h3>Defects Table</h3>
+<table id="defectsTable" border="1" style="width: 100%; border-collapse: collapse; text-align: center;">
+  <thead style="background-color: #d0d0f7;">
+    <tr>
+      <th>Defect Type</th>
+      <th>Minor</th>
+      <th>Major</th>
+      <th>Image Upload</th>
+    </tr>
+  </thead>
+  <tbody id="defect-table-body">
+    <!-- Rows will be added dynamically -->
+  </tbody>
+  <tfoot style="background-color: #e0e0f0;">
+    <tr>
+      <td><strong>Totals</strong></td>
+      <td><input type="number" id="totalMinor" name="totalMinor" readonly style="width: 80px;"></td>
+      <td><input type="number" id="totalMajor" name="totalMajor" readonly style="width: 80px;"></td>
+      <td></td>
+    </tr>
+  </tfoot>
+</table>
+
+<br>
+<button type="button" onclick="addDefectRow()">➕ Add Defect</button>
+
+        <!-- Result -->
+        <label>Inspection Result:
+            <select name="inspection_result">
+                <option value="">--Select--</option>
+                <option value="Pass">Pass</option>
+                <option value="Rework">Rework</option>
+                <option value="Reject">Reject</option>
+                <option value="Hold">Hold</option>
+            </select>
+        </label>
+        <label>Final Comments:<textarea name="final_comments"></textarea></label>
+
+        
+  <!-- Signatures -->
+  <h3>Signatures</h3>
+
+  <div class="signature-container">
+    <label class="signature-label" for="qc_signature_canvas">QC Officer Signature:</label>
+    <canvas id="qc_signature"></canvas>
+    <button type="button" class="clear-btn" onclick="clearCanvas('qc_signature')">Clear</button>
+    <input type="hidden" name="qc_signature" id="qc_signature_input" />
+  </div>
+
+  <div class="signature-container">
+    <label class="signature-label" for="supplier_signature_canvas">Supplier Representative Signature:</label>
+    <canvas id="supplier_signature"></canvas>
+    <button type="button" class="clear-btn" onclick="clearCanvas('supplier_signature')">Clear</button>
+    <input type="hidden" name="supplier_signature" id="supplier_signature_input" />
+  </div>
+
+  <div class="signature-container">
+    <label class="signature-label" for="aqm_signature_canvas">Assistant Quality Manager Signature:</label>
+    <canvas id="aqm_signature"></canvas>
+    <button type="button" class="clear-btn" onclick="clearCanvas('aqm_signature')">Clear</button>
+    <input type="hidden" name="aqm_signature" id="aqm_signature_input" />
+  </div>
+
+  <div class="signature-container">
+    <label class="signature-label" for="merch_signature_canvas">Merchandiser Signature:</label>
+    <canvas id="merch_signature"></canvas>
+    <button type="button" class="clear-btn" onclick="clearCanvas('merch_signature')">Clear</button>
+    <input type="hidden" name="merch_signature" id="merch_signature_input" />
+  </div>
+
+  <button type="submit">Submit</button>
+</form>
+
+<!-- SignaturePad library CDN -->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+<script>
+  const signaturePads = {};
+
+  function resizeCanvas(canvas) {
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    canvas.getContext("2d").scale(ratio, ratio);
+  }
+
+  function initSignature(id) {
+    const canvas = document.getElementById(id);
+    resizeCanvas(canvas);
+
+    const signaturePad = new SignaturePad(canvas, {
+      backgroundColor: 'rgba(255, 255, 255, 0)',
+      penColor: 'black'
+    });
+
+    signaturePads[id] = signaturePad;
+  }
+
+  function clearCanvas(id) {
+    if(signaturePads[id]) {
+      signaturePads[id].clear();
+      document.getElementById(id + "_input").value = "";
+    }
+  }
+
+  // Initialize signature pads
+  ['qc_signature', 'supplier_signature', 'aqm_signature', 'merch_signature'].forEach(initSignature);
+
+  // On form submit, save each signature as data URL in hidden input
+  document.querySelector('form').addEventListener('submit', function(event) {
+    Object.keys(signaturePads).forEach(function(id) {
+      if (!signaturePads[id].isEmpty()) {
+        const dataUrl = signaturePads[id].toDataURL('image/png');
+        document.getElementById(id + "_input").value = dataUrl;
+      } else {
+        document.getElementById(id + "_input").value = "";
+      }
+    });
+  });
+</script>
+<script>
+let defectRowId = 0;
+  function addDefectRow() {
+    const tbody = document.getElementById('defect-table-body');
+    const row = document.createElement('tr');
+    row.setAttribute('id', `defect-row-${defectRowId}`);
+
+    row.innerHTML = `
+  <td><input type="text" name="defectType[]" required style="width:100%; padding:4px;"></td>
+  <td><input type="number" name="minor[]" class="minor-count" value="0" min="0" onchange="calculateTotals()" style="width:100%; padding:4px;"></td>
+  <td><input type="number" name="major[]" class="major-count" value="0" min="0" onchange="calculateTotals()" style="width:100%; padding:4px;"></td>
+  <td><input type="file" name="defectImages_${defectRowId}[]" multiple accept="image/*" style="width:100%;"></td>
+  <td><button type="button" onclick="removeDefectRow(${defectRowId})" style="background:#e74c3c; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer;">❌ Remove</button></td>
+`;
+
+
+    tbody.appendChild(row);
+    defectRowId++;
+    calculateTotals();
+  }
+
+  function calculateTotals() {
+    let minorTotal = 0;
+    let majorTotal = 0;
+
+    document.querySelectorAll('.minor-count').forEach(input => {
+      minorTotal += parseInt(input.value) || 0;
+    });
+
+    document.querySelectorAll('.major-count').forEach(input => {
+      majorTotal += parseInt(input.value) || 0;
+    });
+
+    document.getElementById('totalMinor').value = minorTotal;
+    document.getElementById('totalMajor').value = majorTotal;
+  }
+
+  // Auto-add one row at start
+  window.onload = () => {
+    addDefectRow();
+  };
+</script>
+</body>
+</html>
