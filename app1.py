@@ -2,6 +2,7 @@ import os
 import logging
 import base64
 import json
+from io import BytesIO
 from datetime import datetime
 from flask import Flask, render_template, request, send_file
 from werkzeug.utils import secure_filename
@@ -9,7 +10,7 @@ from fpdf import FPDF
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# --- Setup ---
+# Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("app1")
 
@@ -18,14 +19,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
 SIGNATURE_FOLDER = os.path.join(BASE_DIR, 'static', 'signatures')
-PDF_FOLDER = os.path.join(BASE_DIR, 'static', 'reports')
 
-for folder in [UPLOAD_FOLDER, SIGNATURE_FOLDER, PDF_FOLDER]:
-    os.makedirs(folder, exist_ok=True)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(SIGNATURE_FOLDER, exist_ok=True)
 
-app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024  # 25MB max
+# 20 MB size limit
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024
 
-# --- Google Sheets ---
+# Google Sheets setup
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 try:
     creds_dict = json.loads(os.environ["GOOGLE_CREDS_JSON"])
@@ -34,37 +35,37 @@ try:
     client = gspread.authorize(creds)
     sheet = client.open("webdata").sheet1
 except Exception as e:
-    logger.exception("Failed to authenticate with Google Sheets")
+    logger.exception("Google Sheets setup failed")
     sheet = None
 
-# --- Helpers ---
+# Utilities
 def save_images(file_list, prefix):
-    image_paths = []
+    paths = []
     for file in file_list:
         if file and file.filename:
             filename = secure_filename(f"{prefix}_{file.filename}")
             path = os.path.join(UPLOAD_FOLDER, filename)
             try:
                 file.save(path)
-                image_paths.append(path)
+                paths.append(path)
             except Exception as e:
-                logger.error(f"Failed to save image {filename}: {e}")
-    return image_paths
+                logger.error(f"Could not save image {filename}: {e}")
+    return paths
 
-def save_signature(base64_data, filename):
-    if base64_data and "," in base64_data:
-        base64_data = base64_data.split(',')[1]
-        try:
-            image_data = base64.b64decode(base64_data)
-            path = os.path.join(SIGNATURE_FOLDER, filename)
-            with open(path, 'wb') as f:
-                f.write(image_data)
-            return path
-        except Exception as e:
-            logger.error(f"Failed to save signature {filename}: {e}")
-    return None
+def save_signature(data_url, filename):
+    if not data_url or "," not in data_url:
+        return None
+    try:
+        encoded = data_url.split(',')[1]
+        image_data = base64.b64decode(encoded)
+        path = os.path.join(SIGNATURE_FOLDER, filename)
+        with open(path, 'wb') as f:
+            f.write(image_data)
+        return path
+    except Exception as e:
+        logger.error(f"Failed to save signature: {e}")
+        return None
 
-# --- Routes ---
 @app.route('/')
 def form():
     return render_template('form.html')
@@ -72,33 +73,28 @@ def form():
 @app.route('/submit', methods=['POST'])
 def submit():
     try:
-        # Get form fields
-        form_fields = {
-            key: request.form.get(key) for key in [
-                'date', 'product_category', 'supplier_name', 'item_description', 'design_no',
-                'colour', 'inspector_name', 'fabric_quality', 'merchandiser_name',
-                'order_quantity', 'presented_quantity', 'pieces_inspected', 'sampling_range',
-                'inline_inspection', 'pp_approved', 'packing_list', 'po_same', 'storage_ok',
-                'carton_selected', 'total_cartons', 'inspected_cartons', 'inspection_result',
-                'delivery_date', 'final_comments'
-            ]
-        }
+        fields = {k: request.form.get(k) for k in [
+            'date', 'product_category', 'supplier_name', 'item_description', 'design_no',
+            'colour', 'inspector_name', 'fabric_quality', 'merchandiser_name',
+            'order_quantity', 'presented_quantity', 'pieces_inspected', 'sampling_range',
+            'inline_inspection', 'pp_approved', 'packing_list', 'po_same', 'storage_ok',
+            'carton_selected', 'total_cartons', 'inspected_cartons',
+            'inspection_result', 'delivery_date', 'final_comments'
+        ]}
 
-        # Append to Google Sheet
         if sheet:
             try:
                 sheet.append_row([
-                    form_fields['date'], form_fields['product_category'], form_fields['supplier_name'],
-                    form_fields['item_description'], form_fields['design_no'], form_fields['colour'],
-                    form_fields['inspector_name'], form_fields['merchandiser_name'],
-                    form_fields['order_quantity'], form_fields['presented_quantity'],
-                    form_fields['pp_approved'], form_fields['delivery_date'], form_fields['final_comments']
+                    fields['date'], fields['product_category'], fields['supplier_name'],
+                    fields['item_description'], fields['design_no'], fields['colour'],
+                    fields['inspector_name'], fields['merchandiser_name'],
+                    fields['order_quantity'], fields['presented_quantity'],
+                    fields['pp_approved'], fields['delivery_date'], fields['final_comments']
                 ])
                 logger.info("✅ Appended row to Google Sheet.")
             except Exception as e:
-                logger.error(f"❌ Failed to append to Google Sheet: {e}")
+                logger.warning(f"❌ Sheet write error: {e}")
 
-        # Defect details
         defect_types = request.form.getlist('defectType[]')
         minor_counts = request.form.getlist('minor[]')
         major_counts = request.form.getlist('major[]')
@@ -111,25 +107,30 @@ def submit():
             files = request.files.getlist(f'defectImages_{i}[]')
             if not files or all(f.filename == '' for f in files):
                 break
-            defect_images.append(save_images(files, f'defect_{i}'))
+            paths = save_images(files, f'defect_{i}')
+            defect_images.append(paths)
             i += 1
 
-        # Signatures
-        qc_signature = save_signature(request.form.get('qc_signature'), 'qc_signature.png')
-        supplier_signature = save_signature(request.form.get('supplier_signature'), 'supplier_signature.png')
-        aqm_signature = save_signature(request.form.get('aqm_signature'), 'aqm_signature.png')
-        merch_signature = save_signature(request.form.get('merch_signature'), 'merch_signature.png')
+        # Save signatures
+        signatures = {
+            'QC Officer': save_signature(request.form.get('qc_signature'), 'qc_signature.png'),
+            'Supplier': save_signature(request.form.get('supplier_signature'), 'supplier_signature.png'),
+            'AQM': save_signature(request.form.get('aqm_signature'), 'aqm_signature.png'),
+            'Merchandiser': save_signature(request.form.get('merch_signature'), 'merch_signature.png'),
+        }
 
-        # Other pictures
-        factory_images = save_images(request.files.getlist('factory_pictures'), 'factory')
-        inline_images = save_images(request.files.getlist('inline_pictures'), 'inline')
-        pp_images = save_images(request.files.getlist('pp_pictures'), 'pp')
-        packing_images = save_images(request.files.getlist('packing_list_pictures'), 'packing')
-        po_images = save_images(request.files.getlist('po_pictures'), 'po')
-        storage_images = save_images(request.files.getlist('storage_pictures'), 'storage')
-        carton_images = save_images(request.files.getlist('carton_pictures'), 'carton')
+        # Collect category images
+        image_groups = {
+            "Factory Pictures": save_images(request.files.getlist('factory_pictures'), 'factory'),
+            "Inline Pictures": save_images(request.files.getlist('inline_pictures'), 'inline'),
+            "PP Sample Pictures": save_images(request.files.getlist('pp_pictures'), 'pp'),
+            "Packing List Pictures": save_images(request.files.getlist('packing_list_pictures'), 'packing'),
+            "PO Pictures": save_images(request.files.getlist('po_pictures'), 'po'),
+            "Storage Pictures": save_images(request.files.getlist('storage_pictures'), 'storage'),
+            "Carton Pictures": save_images(request.files.getlist('carton_pictures'), 'carton'),
+        }
 
-        # Generate PDF
+        # PDF generation
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", 'B', 16)
@@ -138,91 +139,80 @@ def submit():
 
         pdf.set_font("Arial", 'B', 12)
         pdf.set_fill_color(220, 230, 255)
-        pdf.cell(70, 10, "Field", border=1, fill=True)
-        pdf.cell(120, 10, "Value", border=1, ln=True, fill=True)
+        pdf.cell(70, 10, "Field", 1, 0, 'L', True)
+        pdf.cell(120, 10, "Value", 1, 1, 'L', True)
 
         pdf.set_font("Arial", '', 12)
-        for label, value in form_fields.items():
-            pdf.cell(70, 10, label.replace("_", " ").title(), border=1)
-            pdf.cell(120, 10, str(value or ""), border=1, ln=True)
+        for k, v in fields.items():
+            pdf.cell(70, 10, k.replace("_", " ").title(), 1)
+            pdf.cell(120, 10, str(v or ""), 1, 1)
 
+        # Defect section
         if defect_types:
             pdf.add_page()
             pdf.set_font("Arial", 'B', 14)
             pdf.cell(0, 10, "Defects Summary", ln=True)
             pdf.set_font("Arial", '', 12)
             for i, dtype in enumerate(defect_types):
-                pdf.cell(60, 10, dtype, border=1)
-                pdf.cell(30, 10, minor_counts[i], border=1)
-                pdf.cell(30, 10, major_counts[i], border=1)
-                pdf.cell(70, 10, f"{len(defect_images[i])} image(s)", border=1, ln=True)
+                pdf.cell(0, 10, f"{dtype}: Minor={minor_counts[i]}, Major={major_counts[i]}", ln=True)
                 for img in defect_images[i]:
                     try:
-                        pdf.image(img, w=60)
+                        pdf.image(img, w=70)
                         pdf.ln(5)
                     except:
-                        pdf.cell(0, 10, f"Could not load image {os.path.basename(img)}", ln=True)
+                        pdf.cell(0, 10, f"Error loading image {os.path.basename(img)}", ln=True)
+            pdf.cell(0, 10, f"Totals - Minor: {total_minor}, Major: {total_major}", ln=True)
 
-            pdf.cell(60, 10, "Total", border=1)
-            pdf.cell(30, 10, total_minor, border=1)
-            pdf.cell(30, 10, total_major, border=1)
-            pdf.cell(70, 10, "", border=1, ln=True)
-
-        def add_images(title, images):
+        # Add all other image groups
+        for title, images in image_groups.items():
             if images:
                 pdf.add_page()
                 pdf.set_font("Arial", 'B', 14)
                 pdf.cell(0, 10, title, ln=True)
-                pdf.ln(5)
                 for img in images:
                     try:
-                        pdf.image(img, w=100)
-                        pdf.ln(10)
+                        pdf.image(img, w=90)
+                        pdf.ln(5)
                     except:
                         pdf.cell(0, 10, f"Could not load image: {os.path.basename(img)}", ln=True)
 
-        add_images("Factory Pictures", factory_images)
-        add_images("Inline Pictures", inline_images)
-        add_images("PP Sample Pictures", pp_images)
-        add_images("Packing List Pictures", packing_images)
-        add_images("PO Pictures", po_images)
-        add_images("Storage Pictures", storage_images)
-        add_images("Carton Pictures", carton_images)
-
+        # Add signatures
         pdf.add_page()
         pdf.set_font("Arial", 'B', 14)
         pdf.cell(0, 10, "Signatures", ln=True)
-
-        for label, path in [("QC Officer", qc_signature), ("Supplier", supplier_signature),
-                            ("AQM", aqm_signature), ("Merchandiser", merch_signature)]:
+        for label, path in signatures.items():
             if path and os.path.exists(path):
                 pdf.set_font("Arial", '', 12)
                 pdf.cell(0, 10, f"{label}:", ln=True)
                 try:
                     pdf.image(path, w=60)
+                    pdf.ln(5)
                 except:
-                    pdf.cell(0, 10, f"Could not load signature for {label}", ln=True)
-                pdf.ln(5)
+                    pdf.cell(0, 10, f"Error loading signature for {label}", ln=True)
 
-        pdf_filename = f"inspection_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-        pdf_path = os.path.join(PDF_FOLDER, pdf_filename)
-        pdf.output(pdf_path)
-        logger.info(f"✅ PDF generated: {pdf_filename}")
+        # Save in memory
+        pdf_output = BytesIO()
+        pdf.output(pdf_output)
+        pdf_output.seek(0)
 
         # Upload to Google Drive
         from drive_uploader import upload_to_drive
         try:
-            upload_to_drive(pdf_path, pdf_filename, folder_id='1vQbksJZzNLmTaLkEfgtg4HErKArI-HVf')
-            logger.info("✅ Uploaded to Google Drive successfully.")
+            filename = f"inspection_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            temp_path = os.path.join("/tmp", filename)
+            with open(temp_path, 'wb') as f:
+                f.write(pdf_output.read())
+            upload_to_drive(temp_path, filename, folder_id='1vQbksJZzNLmTaLkEfgtg4HErKArI-HVf')
+            logger.info(f"✅ PDF uploaded: {filename}")
+            pdf_output.seek(0)  # rewind again
         except Exception as e:
-            logger.error(f"❌ Failed to upload to Google Drive: {e}")
+            logger.error(f"❌ Drive upload failed: {e}")
 
-        return "✅ Form submitted and PDF uploaded to Google Drive."
+        return send_file(pdf_output, as_attachment=True, download_name="report.pdf")
 
     except Exception as e:
-        logger.exception("❌ Error in /submit handler")
-        return "❌ An error occurred during submission.", 500
+        logger.exception("❌ Error in form submission")
+        return "An error occurred during submission", 500
 
-# --- Run Locally ---
 if __name__ == '__main__':
     app.run(debug=True)
