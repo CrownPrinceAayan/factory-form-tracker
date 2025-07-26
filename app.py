@@ -199,8 +199,9 @@ def submit():
 
         # Save in memory
         pdf_output = BytesIO()
-        pdf.output(pdf_output)
+        pdf_output.write(pdf.output(dest='S').encode('latin1'))
         pdf_output.seek(0)
+
 
         # Upload to Google Drive
         from drive_uploader import upload_to_drive
