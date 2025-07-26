@@ -1,6 +1,7 @@
 import os
 import logging
 import base64
+import sys
 import json
 from io import BytesIO
 from datetime import datetime
@@ -11,8 +12,14 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # Logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    stream=sys.stdout,
+    format='%(asctime)s [%(levelname)s] %(message)s'
+)
 logger = logging.getLogger("app1")
+logger.setLevel(logging.INFO)
+logger.propagate = True
 
 app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
