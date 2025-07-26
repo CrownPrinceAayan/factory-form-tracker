@@ -17,7 +17,7 @@ logging.basicConfig(
     stream=sys.stdout,
     format='%(asctime)s [%(levelname)s] %(message)s'
 )
-logger = logging.getLogger("app1")
+logger = logging.getLogger("app")
 logger.setLevel(logging.INFO)
 logger.propagate = True
 
